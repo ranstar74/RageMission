@@ -57,7 +57,7 @@ namespace RageMission.Core
 
             if (CurrentObjective.Status == ObjectiveStatus.Failed)
             {
-                Finish(false);
+                OnFinish(false);
             }
         }
 
@@ -66,7 +66,7 @@ namespace RageMission.Core
         {
             if (_objectives.Count == _currentObjectiveIndex + 1)
             {
-                Finish(true);
+                OnFinish(true);
                 return;
             }
 
@@ -74,7 +74,8 @@ namespace RageMission.Core
             CurrentObjective.Start();
         }
 
-        private void Finish(bool success)
+        /// <summary>Calls on mission finish.</summary>
+        protected virtual void OnFinish(bool success)
         {
             MissionCompleteDialog.ShowFinished(success);
 
