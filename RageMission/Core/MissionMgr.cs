@@ -3,6 +3,9 @@ using System.Collections.Generic;
 
 namespace RageMission.Core
 {
+    /// <summary>Delegate that being invoked when a mission finishes.</summary>
+    public delegate void OnMissionFinished(Mission mission);
+
     /// <summary>Manages mission execution.</summary>
     public static class MissionMgr
     {
@@ -11,6 +14,9 @@ namespace RageMission.Core
 
         /// <summary>Gets a value indicating whether there's mission running or not.</summary>
         public static bool IsMissionActive => ActiveMission != null;
+
+        /// <summary>Event that is invoked when a mission finishes.</summary>
+        public static event OnMissionFinished OnMissionFinished;
 
         private static readonly List<Mission> _missionHistory = new List<Mission>();
 
@@ -37,6 +43,7 @@ namespace RageMission.Core
             ActiveMission.Update();
             if(ActiveMission.IsFinished)
             {
+                OnMissionFinished(ActiveMission);
                 ActiveMission = null;
             }
         }

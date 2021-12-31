@@ -30,11 +30,15 @@
     <Compile Include="Core\MissionMgr.cs" />
     <Compile Include="Core\Objective.cs" />
     <Compile Include="Core\MissionCompleteDialog.cs" />
+    <Compile Include="Story\StorylineMgr.cs" />
     <Compile Include="Core\UiHelper.cs" />
     <Compile Include="Main.cs" />
     <Compile Include="Objectives\PredicateObjective.cs" />
     <Compile Include="Objectives\WaypointObjective.cs" />
     <Compile Include="ScriptEvents.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="System.Drawing" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
