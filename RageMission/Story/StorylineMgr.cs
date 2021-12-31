@@ -1,5 +1,6 @@
 ﻿using GTA;
 using GTA.Math;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -10,18 +11,18 @@ namespace RageMission.Core
     public abstract class StorylineMgr
     {
         /// <summary>A List of all missions of this story line.</summary>
-        public abstract List<StoryMission> Missions { get; }
+        protected abstract List<StoryMission> Missions { get; }
 
         /// <summary>A Map that links a name to a mission.</summary>
-        public abstract Dictionary<string, Mission> MissionMap { get; }
+        protected abstract Dictionary<string, Type> MissionMap { get; }
 
         /// <summary>This is a set of various flags that is used to toggle
         /// missions. For example it could be IS_TUTORIAL_DONE: TRUE, and
         /// some other mission will became available with this flag set to True.</summary>
-        public abstract Dictionary<string, bool> MissionFlags { get; }
+        protected abstract Dictionary<string, bool> MissionFlags { get; }
 
         /// <summary>Gets a Collection of all available missions.</summary>
-        public IEnumerable<StoryMission> AvailableMissions => _availableMissions;
+        protected IEnumerable<StoryMission> AvailableMissions => _availableMissions;
 
         /// <summary>Gets a closest available story mission. 
         /// Could be null if there's none of some mission is currently running.</summary>
@@ -38,6 +39,30 @@ namespace RageMission.Core
         public StorylineMgr()
         {
             RefreshAvailableMissions();
+
+            MissionMgr.OnMissionFinished += MissionMgr_OnMissionFinished;
+        }
+
+        /// <summary>Gets state of given flag.</summary>
+        /// <param name="flag">Name of the flag.</param>
+        /// <returns>A Boolean value, indicating whether flag is done or not.</returns>
+        public bool GetFlagState(string flag)
+        {
+            if (!MissionFlags.ContainsKey(flag))
+                throw new ArgumentException($"Flag: {flag} was not found.");
+
+            return MissionFlags[flag];
+        }
+
+        /// <summary>Sets state of given flag.</summary>
+        /// <param name="flag">Name of the flag.</param>
+        /// <param name="value">Value to set.</param>
+        public void SetFlagState(string flag, bool value)
+        {
+            if (!MissionFlags.ContainsKey(flag))
+                throw new ArgumentException($"Flag: {flag} was not found.");
+
+            MissionFlags[flag] = value;
         }
 
         /// <summary>Updates all blips of available missions on map.
@@ -46,6 +71,25 @@ namespace RageMission.Core
         {
             RefreshClosestMission();
             DrawMissionMarkers();
+
+            if (ClosestMission == null)
+                return;
+
+            if(ClosestMistanceDistance < 2)
+            {
+                Type missionType = MissionMap[ClosestMission.MissionName];
+                Mission mission = (Mission) Activator.CreateInstance(missionType);
+
+                int fadeTime = 250;
+                GTA.UI.Screen.FadeOut(fadeTime);
+
+                Script.Wait(fadeTime);
+                MissionMgr.StartMission(mission);
+
+                GTA.UI.Screen.FadeIn(fadeTime);
+
+                RefreshAvailableMissions();
+            }
         }
 
         /// <summary>Removes all blips for map.</summary>
@@ -58,6 +102,15 @@ namespace RageMission.Core
             _missionBlips.Clear();
         }
 
+        private void MissionMgr_OnMissionFinished(Mission mission)
+        {
+            // Check if mission is from this storyline
+            if (!MissionMap.Values.Contains(mission.GetType()))
+                return;
+
+            RefreshAvailableMissions();
+        }
+
         private void DrawMissionMarkers()
         {
             foreach(StoryMission mission in AvailableMissions)
@@ -65,9 +118,9 @@ namespace RageMission.Core
                 World.DrawMarker(
                     type: MarkerType.VerticalCylinder,
                     pos: mission.Position,
-                    dir: Vector3.WorldUp,
+                    dir: default,
                     rot: default,
-                    scale: default,
+                    scale: new Vector3(1f, 1f, 1f),
                     color: Color.Red);
             }
         }
@@ -81,12 +134,12 @@ namespace RageMission.Core
                 return;
             }
 
-            if(_refreshTime < Game.GameTime)
+            if (_refreshTime > Game.GameTime)
             {
                 return;
             }
 
-            float closestDistance = -1;
+            float closestDistance = float.MaxValue;
             StoryMission closestMission = null;
             Vector3 pPos = Game.Player.Character.Position;
             foreach (StoryMission mission in AvailableMissions)
@@ -137,20 +190,23 @@ namespace RageMission.Core
 
         private IEnumerable<StoryMission> GetAvailableMissions()
         {
-            foreach (StoryMission sMission in Missions)
+            if(!MissionMgr.IsMissionActive)
             {
-                string flag = sMission.RequiredFlag;
-
-                if(!string.IsNullOrEmpty(flag))
+                foreach (StoryMission sMission in Missions)
                 {
-                    if (!MissionMap.ContainsKey(flag))
-                        continue;
+                    string flag = sMission.RequiredFlag;
 
-                    if (!MissionFlags[flag])
-                        continue;
+                    if (!string.IsNullOrEmpty(flag))
+                    {
+                        if (!MissionMap.ContainsKey(flag))
+                            continue;
+
+                        if (!MissionFlags[flag])
+                            continue;
+                    }
+
+                    yield return sMission;
                 }
-
-                yield return sMission;
             }
         }
     }
