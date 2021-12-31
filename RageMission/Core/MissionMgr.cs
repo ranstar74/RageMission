@@ -12,6 +12,9 @@ namespace RageMission.Core
         /// <summary>Current active mission. Null if there's none.</summary>
         public static Mission ActiveMission { get; private set; }
 
+        /// <summary>Last started mission.</summary>
+        public static Mission LastMission { get; private set; }
+
         /// <summary>Gets a value indicating whether there's mission running or not.</summary>
         public static bool IsMissionActive => ActiveMission != null;
 
@@ -30,6 +33,8 @@ namespace RageMission.Core
             ActiveMission = mission;
             ActiveMission.Start();
 
+            LastMission = ActiveMission;
+
             _missionHistory.Add(ActiveMission);
         }
 
@@ -43,8 +48,8 @@ namespace RageMission.Core
             ActiveMission.Update();
             if(ActiveMission.IsFinished)
             {
-                OnMissionFinished(ActiveMission);
                 ActiveMission = null;
+                OnMissionFinished(LastMission);
             }
         }
 
