@@ -9,6 +9,9 @@ namespace RageMission.Core
         /// <summary>Current active mission. Null if there's none.</summary>
         public static Mission ActiveMission { get; private set; }
 
+        /// <summary>Gets a value indicating whether there's mission running or not.</summary>
+        public static bool IsMissionActive => ActiveMission != null;
+
         private static readonly List<Mission> _missionHistory = new List<Mission>();
 
         /// <summary>Starts given mission.</summary>
