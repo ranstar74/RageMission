@@ -181,6 +181,8 @@ namespace RageMission.Core
         /// <summary>Removes all blips for map.</summary>
         public void Abort()
         {
+            GTA.UI.Screen.FadeIn(0);
+
             foreach (Blip blip in _missionBlips.Values)
             {
                 blip.Delete();

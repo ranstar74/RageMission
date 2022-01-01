@@ -15,7 +15,10 @@ namespace RageMission.Core
         /// <summary>Gets a value indicating whether mission was finished or not.</summary>
         public bool IsFinished { get; private set; }
 
-        private int _currentObjectiveIndex = -1;
+        /// <summary>Action that invokes when objective starts.</summary>
+        protected Action<Objective> OnObjectiveStarted { get; set; }
+
+        private int _currentObjectiveIndex = 0;
         private readonly List<Objective> _objectives;
 
         /// <summary>Creates a new <see cref="Mission"/> instance.</summary>
@@ -48,6 +51,13 @@ namespace RageMission.Core
         /// <summary>Calls every tick when mission is active.</summary>
         public virtual void Update()
         {
+            // I really have no idea why that happens
+            // but time to time it does
+            if (CurrentObjective == null)
+            {
+                return;
+            }
+
             CurrentObjective.Update();
 
             if (CurrentObjective.Status == ObjectiveStatus.Success)
@@ -64,14 +74,18 @@ namespace RageMission.Core
         /// <summary>Goes to next objective. If there's no objectives left, mission finishes.</summary>
         private void GoToNextObjective()
         {
-            if (_objectives.Count == _currentObjectiveIndex + 1)
+            if (_objectives.Count == _currentObjectiveIndex)
             {
                 OnFinish(true);
                 return;
             }
-
-            CurrentObjective = _objectives[++_currentObjectiveIndex];
+            CurrentObjective = _objectives[_currentObjectiveIndex];
+            CurrentObjective.Status = ObjectiveStatus.InProgress;
             CurrentObjective.Start();
+
+            OnObjectiveStarted?.Invoke(CurrentObjective);
+
+            _currentObjectiveIndex++;
         }
 
         /// <summary>Calls on mission finish.</summary>

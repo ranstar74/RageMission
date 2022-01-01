@@ -3,23 +3,18 @@ using RageMission.Core;
 
 namespace RageMission.Objectives
 {
-    /// <summary>Objective with <see cref="Success"/> and <see cref="Fail"/> predicates.</summary>
-    public class PredicateObjective<T> : Objective
+    /// <summary>Objective with <see cref="Success"/> and <see cref="Fail"/> functions.</summary>
+    public class FuncObjective : Objective
     {
-        /// <summary>Target of this objective. For example could be vehicle.</summary>
-        public T Target { get; }
-
         /// <summary>Predicate that defines success status of this objective. Can't be null.</summary>
-        public Predicate<T> Success { get; }
+        public Func<bool> Success { get; }
 
         /// <summary>Predicate that defines failed status of this objective. Could be null if not required.</summary>
-        public Predicate<T> Fail { get; }
+        public Func<bool> Fail { get; }
 
-        /// <summary>Creates a new <see cref="PredicateObjective{T}"/> with <see cref="Target"/> and <see cref="Success"/> predicate. 
-        /// <see cref="Fail"/> is optinal.</summary>
-        public PredicateObjective(T target, Predicate<T> success, Predicate<T> fail = null)
+        /// <summary>Creates a new <see cref="FuncObjective"/> with and <see cref="Success"/> function. <see cref="Fail"/> is optinal.</summary>
+        public FuncObjective(Func<bool> success, Func<bool> fail = null)
         {
-            Target = target;
             Success = success;
             Fail = fail;
         }
@@ -33,13 +28,13 @@ namespace RageMission.Objectives
         /// <summary>Updates execution of this objective.</summary>
         public override void Update()
         {
-            if(Success.Invoke(Target) == true)
+            if(Success.Invoke() == true)
             {
                 Status = ObjectiveStatus.Success;
                 return;
             }
 
-            if(Fail?.Invoke(Target) == true)
+            if(Fail?.Invoke() == true)
             {
                 Status = ObjectiveStatus.Failed;
                 return;

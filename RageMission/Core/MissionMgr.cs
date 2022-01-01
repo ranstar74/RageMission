@@ -34,8 +34,7 @@ namespace RageMission.Core
             ActiveMission.Start();
 
             LastMission = ActiveMission;
-
-            _missionHistory.Add(ActiveMission);
+            _missionHistory.Add(LastMission);
         }
 
         internal static void Update()
@@ -45,7 +44,12 @@ namespace RageMission.Core
                 return;
             }
 
+            if(ActiveMission.CurrentObjective?.Status != ObjectiveStatus.InProgress)
+            {
+                return;
+            }
             ActiveMission.Update();
+
             if(ActiveMission.IsFinished)
             {
                 ActiveMission = null;

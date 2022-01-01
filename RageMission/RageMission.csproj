@@ -30,6 +30,7 @@
     <Compile Include="Core\MissionMgr.cs" />
     <Compile Include="Core\Objective.cs" />
     <Compile Include="Core\MissionCompleteDialog.cs" />
+    <Compile Include="Objectives\FuncObjective.cs" />
     <Compile Include="Story\StorylineMgr.cs" />
     <Compile Include="Core\UiHelper.cs" />
     <Compile Include="Main.cs" />
